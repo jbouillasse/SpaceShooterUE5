@@ -31,7 +31,7 @@ void ASpaceshipPawn::Tick(float DeltaTime)
         FVector NewLocation = GetActorLocation() + (CurrentVelocity * DeltaTime);
 
         NewLocation.X = FMath::Clamp(NewLocation.X, -680.0f, 60.0f); 
-        NewLocation.Z = FMath::Clamp(NewLocation.Z, 400.0f, 800.0f); 
+        NewLocation.Z = FMath::Clamp(NewLocation.Z, 400.0f, 700.0f); 
 
         SetActorLocation(NewLocation, true);
     }
