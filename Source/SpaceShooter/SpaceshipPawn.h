@@ -16,14 +16,10 @@ protected:
 	virtual void BeginPlay() override;
 
 public:    
-	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	class UBoxComponent* CollisionComponent;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	class UPaperSpriteComponent* ShipSpriteComponent;
+	class UFloatingPawnMovement* MovementComponent;
 
 	void MoveRight(float Value);
 	void MoveUp(float Value);
@@ -31,11 +27,38 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float MoveSpeed = 600.0f;
-
-	// Référence de la classe du projectile à assigner dans le Blueprint
+	
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
 	TSubclassOf<class AProjectile> ProjectileClass;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player Stats")
+	int32 Lives = 3;
+	
+	UFUNCTION(BlueprintImplementableEvent, Category = "UI")
+	void OnLifeChanged(int32 CurrentLives);
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player Stats")
+	int32 Score = 0;
 
-private:
-	FVector CurrentVelocity;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player Stats")
+	int32 ScoreMultiplier = 1;
+	
+	UFUNCTION(BlueprintImplementableEvent, Category = "UI")
+	void OnScoreChanged(int32 NewScore, int32 CurrentMultiplier);
+	
+	void AddScore(int32 Points);
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
+	TSubclassOf<class UUserWidget> GameOverWidgetClass;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audio")
+	USoundBase* LaserSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audio")
+	USoundBase* GameOverSound;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Audio")
+	USoundBase* HitSound;
+
+	void LoseLife();
 };

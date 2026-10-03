@@ -2,38 +2,30 @@
 #include "Components/BoxComponent.h"
 #include "PaperSpriteComponent.h"
 #include "Projectile.h"
+#include "GameFramework/FloatingPawnMovement.h"
+#include "Blueprint/UserWidget.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundBase.h"
+#include "GameFramework/PlayerController.h"
 
 ASpaceshipPawn::ASpaceshipPawn()
 {
-    PrimaryActorTick.bCanEverTick = true;
+    // On désactive le Tick car le mouvement est géré par le composant
+    PrimaryActorTick.bCanEverTick = false;
 
-    // Boîte de collision principale
-    CollisionComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("CollisionComponent"));
-    RootComponent = CollisionComponent;
-    CollisionComponent->SetBoxExtent(FVector(20.0f, 30.0f, 30.0f));
-
-    // Sprite du vaisseau
-    ShipSpriteComponent = CreateDefaultSubobject<UPaperSpriteComponent>(TEXT("ShipSprite"));
-    ShipSpriteComponent->SetupAttachment(RootComponent);
+    // Initialisation du composant de mouvement natif
+    MovementComponent = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("MovementComponent"));
+    MovementComponent->MaxSpeed = MoveSpeed;
 }
 
 void ASpaceshipPawn::BeginPlay()
 {
     Super::BeginPlay();
-}
-
-void ASpaceshipPawn::Tick(float DeltaTime)
-{
-    Super::Tick(DeltaTime);
-
-    if (!CurrentVelocity.IsZero())
+    
+    // Assure que la vitesse définie dans le Blueprint est bien appliquée au lancement
+    if (MovementComponent)
     {
-        FVector NewLocation = GetActorLocation() + (CurrentVelocity * DeltaTime);
-
-        NewLocation.X = FMath::Clamp(NewLocation.X, -680.0f, 60.0f); 
-        NewLocation.Z = FMath::Clamp(NewLocation.Z, 400.0f, 700.0f); 
-
-        SetActorLocation(NewLocation, true);
+        MovementComponent->MaxSpeed = MoveSpeed;
     }
 }
 
@@ -50,18 +42,84 @@ void ASpaceshipPawn::Shoot()
 {
     if (ProjectileClass)
     {
-        FVector SpawnLocation = GetActorLocation() + FVector(0.0f, 0.0f, -30.0f); 
+        FVector SpawnLocation = GetActorLocation() + FVector(1.5, 0.0f, 0.0f); 
         FRotator SpawnRotation = FRotator::ZeroRotator;
         GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnLocation, SpawnRotation);
+        
+        //Volume
+        if (LaserSound)
+        {
+            UGameplayStatics::PlaySound2D(GetWorld(), LaserSound, 0.05f);
+        }
+    }
+}
+
+void ASpaceshipPawn::LoseLife()
+{
+    Lives--;
+    ScoreMultiplier = 1;
+    
+    OnLifeChanged(Lives);
+    OnScoreChanged(Score, ScoreMultiplier);
+    
+    if (Lives <= 0)
+    {
+        if (GameOverSound)
+        {
+            UGameplayStatics::PlaySound2D(GetWorld(), GameOverSound, 0.6f);
+        }
+
+        if (GameOverWidgetClass)
+        {
+            UUserWidget* GameOverWidget = CreateWidget<UUserWidget>(GetWorld(), GameOverWidgetClass);
+            if (GameOverWidget)
+            {
+                GameOverWidget->AddToViewport();
+                
+                APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+                if (PC)
+                {
+                    // On paramètre le mode de contrôle uniquement sur l'UI
+                    FInputModeUIOnly InputModeData;
+                    InputModeData.SetWidgetToFocus(GameOverWidget->TakeWidget());
+                    InputModeData.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+                    
+                    PC->SetInputMode(InputModeData);
+                    PC->bShowMouseCursor = true; // On force l'affichage de la souris
+                }
+            }
+        }
+
+        Destroy(); 
+    }
+    else 
+    {
+        if (HitSound)
+        {
+            UGameplayStatics::PlaySound2D(GetWorld(), HitSound, 1.0f);
+        }
     }
 }
 
 void ASpaceshipPawn::MoveRight(float Value)
 {
-    CurrentVelocity.X = Value * MoveSpeed;
+    if (Value != 0.0f)
+    {
+        AddMovementInput(FVector(1.0f, 0.0f, 0.0f), Value);
+    }
 }
 
 void ASpaceshipPawn::MoveUp(float Value)
 {
-    CurrentVelocity.Z = Value * MoveSpeed;
+    if (Value != 0.0f)
+    {
+        AddMovementInput(FVector(0.0f, 0.0f, 1.0f), Value);
+    }
+}
+
+void ASpaceshipPawn::AddScore(int32 Points)
+{
+    Score += (Points * ScoreMultiplier);
+    ScoreMultiplier++; 
+    OnScoreChanged(Score, ScoreMultiplier);
 }
