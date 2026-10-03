@@ -3,7 +3,7 @@
 ## À propos du projet
 Ce projet est un prototype de jeu d'arcade 2D de type "Space Shooter" développé avec **Unreal Engine 5.8.2** et programmé en **C++**. 
 
-Il a été réalisé dans le cadre du premier TP de l'Université du Québec à Chicoutimi (UQAC)[cite: 8]. L'objectif pédagogique principal de ce projet était de s'initier aux flux de travail professionnels en gestion de versions en utilisant conjointement **GitHub** et **Perforce Helix Core**, tout en appliquant des concepts d'architecture logicielle de jeu vidéo (programmation orientée objet, gestion de la mémoire, et séparation C++/Blueprint).
+Il a été réalisé dans le cadre du premier TP de l'Université du Québec à Chicoutimi. L'objectif pédagogique principal de ce projet était de s'initier aux flux de travail professionnels en gestion de versions en utilisant conjointement **GitHub** et **Perforce Helix Core**, tout en appliquant des concepts d'architecture logicielle de jeu vidéo (programmation orientée objet, gestion de la mémoire, et séparation C++/Blueprint).
 
 ## Fonctionnalités Principales
 
